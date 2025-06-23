@@ -1,30 +1,35 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const { Configuration, OpenAIApi } = require("openai");
+const OpenAI = require("openai");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-const configuration = new Configuration({
-  apiKey: "YOUR_OPENAI_API_KEY", // Replace with your real key
+// ✅ Setup OpenAI
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
 });
-const openai = new OpenAIApi(configuration);
 
 app.post("/chat", async (req, res) => {
   const userMessage = req.body.message;
 
-  const response = await openai.createChatCompletion({
-    model: "gpt-3.5-turbo",
-    messages: [
-      { role: "system", content: "You are a chatbot for Swetha Sree's portfolio. Answer questions about her background, skills, projects, and contact." },
-      { role: "user", content: userMessage },
-    ],
-  });
+  try {
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [{ role: "user", content: userMessage }],
+    });
 
-  const reply = response.data.choices[0].message.content;
-  res.json({ reply });
+    const botReply = completion.choices[0].message.content;
+    res.json({ reply: botReply });
+  } catch (err) {
+    console.error("OpenAI Error:", err);
+    res.status(500).json({ reply: "Sorry, something went wrong on the server." });
+  }
 });
 
-app.listen(3000, () => console.log("Server running on http://localhost:3000"));
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`Chatbot server running on port ${PORT}`);
+});
