@@ -1,35 +1,30 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const OpenAI = require("openai");
 
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
-// ✅ Setup OpenAI
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 app.post("/chat", async (req, res) => {
-  const userMessage = req.body.message;
+  const userMessage = req.body.message.toLowerCase(); // lowercase for easy matching
+  let botReply = "I'm not sure how to respond to that yet.";
 
-  try {
-    const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: userMessage }],
-    });
-
-    const botReply = completion.choices[0].message.content;
-    res.json({ reply: botReply });
-  } catch (err) {
-    console.error("OpenAI Error:", err);
-    res.status(500).json({ reply: "Sorry, something went wrong on the server." });
+  // Simple keyword-based response logic
+  if (userMessage.includes("background")) {
+    botReply = "I'm Swetha Sree, a web developer passionate about MERN stack, AI, and solving real-world problems.";
+  } else if (userMessage.includes("skills")) {
+    botReply = "My skills include HTML, CSS, JavaScript, React, Node.js, Express, MongoDB, and AI tools.";
+  } else if (userMessage.includes("projects")) {
+    botReply = "I've worked on a chatbot app, weather forecast app, portfolio website, and a movie search tool.";
+  } else if (userMessage.includes("contact")) {
+    botReply = "You can contact me via email at swethanehru04@gmail.com or on LinkedIn.";
   }
+
+  res.json({ reply: botReply });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`Chatbot server running on port ${PORT}`);
+  console.log(`Mock chatbot server running on port ${PORT}`);
 });
